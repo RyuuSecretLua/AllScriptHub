@@ -1,0 +1,494 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local VIM = game:GetService("VirtualInputManager")
+local VirtualUser = game:GetService("VirtualUser")
+
+local lp = Players.LocalPlayer
+
+local START_CFRAME = CFrame.new(720, 173, -27)
+local TARGET_TIME = 120
+local START_DELAY = 5
+local CP_DELAY = 1
+local POST_REPLAY_DELAY = 2
+
+local running = true
+local autoPickup = false
+local autoClick = false
+
+local character, humanoid, hrp
+local function bindChar(char)
+	character = char
+	if char then
+		humanoid = char:WaitForChild("Humanoid")
+		hrp = char:WaitForChild("HumanoidRootPart")
+	end
+end
+
+bindChar(lp.Character or lp.CharacterAdded:Wait())
+lp.CharacterAdded:Connect(bindChar)
+
+lp.Idled:Connect(function()
+	VirtualUser:CaptureController()
+	VirtualUser:ClickButton2(Vector2.new())
+end)
+
+local timeLabel = lp.PlayerGui
+	:WaitForChild("PlayerUi")
+	:WaitForChild("Base")
+	:WaitForChild("ObbyDisplays")
+	:WaitForChild("TimerBase")
+	:WaitForChild("Time")
+
+pcall(function()
+	if lp.PlayerGui:FindFirstChild("WonderChaseGui") then lp.PlayerGui.WonderChaseGui:Destroy() end
+	if lp.PlayerGui:FindFirstChild("IntroGui") then lp.PlayerGui.IntroGui:Destroy() end
+	if lp.PlayerGui:FindFirstChild("VelocityX") then lp.PlayerGui.VelocityX:Destroy() end
+	if gethui and gethui():FindFirstChild("VelocityX") then gethui():FindFirstChild("VelocityX"):Destroy() end
+end)
+
+local function tp(cf)
+	if not hrp then return end
+	for _ = 1, 3 do
+		hrp.CFrame = cf
+		RunService.Heartbeat:Wait()
+	end
+end
+
+local function tpToCheckpoint(parentPath, startNum, endNum)
+	for i = startNum, endNum do
+		if not autoClick or not running then break end
+		local cpName = "CheckpointNoSticker" .. string.format("%02d", i)
+		local cpModel = parentPath:FindFirstChild(cpName)
+		if cpModel then
+			local touchPart = cpModel:FindFirstChild("Touch")
+			if touchPart and hrp then
+				tp(touchPart.CFrame)
+				firetouchinterest(hrp, touchPart, 0)
+				task.wait(0.1)
+				firetouchinterest(hrp, touchPart, 1)
+				task.wait(CP_DELAY)
+			end
+		end
+	end
+end
+
+local function clickReplay()
+	local success = false
+	pcall(function()
+		local replayBtn = lp.PlayerGui.PlayerUi.Popups.ObbyResults.ReplayButton
+		if replayBtn and replayBtn.Visible then
+			local pos = replayBtn.AbsolutePosition
+			local size = replayBtn.AbsoluteSize
+			VIM:SendMouseButtonEvent(pos.X + size.X/2, pos.Y + size.Y/2 + 36, 0, true, game, 0)
+			task.wait(0.1)
+			VIM:SendMouseButtonEvent(pos.X + size.X/2, pos.Y + size.Y/2 + 36, 0, false, game, 0)
+			success = true
+		end
+	end)
+	return success
+end
+
+local BORDER_START = Color3.fromRGB(0, 255, 140)
+local BORDER_MID   = Color3.fromRGB(0, 210, 200)
+local BORDER_END   = Color3.fromRGB(0, 140, 255)
+
+local ScreenGui = Instance.new("ScreenGui")
+local WrapFrame = Instance.new("Frame")
+local MainFrame = Instance.new("Frame")
+local TitleBar = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+local MinBtn = Instance.new("TextButton")
+local ContentFrame = Instance.new("Frame")
+local LogFrame = Instance.new("ScrollingFrame")
+local LogLayout = Instance.new("UIListLayout")
+
+ScreenGui.Name = "VelocityX"
+ScreenGui.Parent = gethui and gethui() or lp:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+WrapFrame.Parent = ScreenGui
+WrapFrame.Position = UDim2.new(0.35, -2, 0.3, -2)
+WrapFrame.Size = UDim2.new(0, 344, 0, 320)
+WrapFrame.BorderSizePixel = 0
+WrapFrame.Active = true
+WrapFrame.ZIndex = 1
+WrapFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+local wc = Instance.new("UICorner"); wc.CornerRadius = UDim.new(0, 12); wc.Parent = WrapFrame
+local wg = Instance.new("UIGradient"); wg.Parent = WrapFrame; wg.Rotation = 0
+wg.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0.00, BORDER_START),
+	ColorSequenceKeypoint.new(0.50, BORDER_MID),
+	ColorSequenceKeypoint.new(1.00, BORDER_END)
+})
+
+MainFrame.Parent = WrapFrame
+MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+MainFrame.Position = UDim2.new(0, 2, 0, 2)
+MainFrame.Size = UDim2.new(1, -4, 1, -4)
+MainFrame.BorderSizePixel = 0
+MainFrame.ZIndex = 2
+MainFrame.ClipsDescendants = true
+local c1 = Instance.new("UICorner"); c1.CornerRadius = UDim.new(0, 10); c1.Parent = MainFrame
+
+TitleBar.Parent = MainFrame
+TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+TitleBar.Size = UDim2.new(1, 0, 0, 38)
+TitleBar.BorderSizePixel = 0
+TitleBar.ZIndex = 2
+local c2 = Instance.new("UICorner"); c2.CornerRadius = UDim.new(0, 10); c2.Parent = TitleBar
+
+TitleLabel.Parent = TitleBar
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Position = UDim2.new(0, 12, 0, 0)
+TitleLabel.Size = UDim2.new(1, -40, 1, 0)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "Wonder Chase V2 - Crookhaven"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 15
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.ZIndex = 2
+local titleGradient = Instance.new("UIGradient"); titleGradient.Parent = TitleLabel; titleGradient.Rotation = 0
+titleGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0.00, BORDER_START),
+	ColorSequenceKeypoint.new(0.50, BORDER_MID),
+	ColorSequenceKeypoint.new(1.00, BORDER_END)
+})
+
+MinBtn.Parent = TitleBar
+MinBtn.BackgroundTransparency = 1
+MinBtn.Position = UDim2.new(1, -34, 0, 5)
+MinBtn.Size = UDim2.new(0, 28, 0, 28)
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.Text = "^"
+MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinBtn.TextSize = 16
+MinBtn.ZIndex = 2
+local minGrad = Instance.new("UIGradient"); minGrad.Parent = MinBtn; minGrad.Rotation = 0
+minGrad.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0.00, BORDER_START),
+	ColorSequenceKeypoint.new(0.50, BORDER_MID),
+	ColorSequenceKeypoint.new(1.00, BORDER_END)
+})
+
+ContentFrame.Parent = MainFrame
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Position = UDim2.new(0, 0, 0, 44)
+ContentFrame.Size = UDim2.new(1, 0, 1, -44)
+ContentFrame.ZIndex = 2
+
+local minimized = false
+local FULL_SIZE = UDim2.new(0, 344, 0, 320)
+local MINI_SIZE = UDim2.new(0, 344, 0, 42)
+
+MinBtn.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	if minimized then
+		TweenService:Create(WrapFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = MINI_SIZE}):Play()
+		TweenService:Create(MinBtn, TweenInfo.new(0.25), {Rotation = 180}):Play()
+	else
+		TweenService:Create(WrapFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = FULL_SIZE}):Play()
+		TweenService:Create(MinBtn, TweenInfo.new(0.25), {Rotation = 0}):Play()
+	end
+end)
+
+do
+	local dragging = false
+	local dragInput
+	local dragStart
+	local startPos
+
+	local function update(input)
+		local delta = input.Position - dragStart
+		WrapFrame.Position = UDim2.new(
+			startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y
+		)
+	end
+
+	TitleBar.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = WrapFrame.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+
+	TitleBar.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+
+	UIS.InputChanged:Connect(function(input)
+		if input == dragInput and dragging then
+			update(input)
+		end
+	end)
+end
+
+local tabWrap = Instance.new("Frame")
+tabWrap.Parent = ContentFrame
+tabWrap.Position = UDim2.new(0, 14, 0, 4)
+tabWrap.Size = UDim2.new(0, 72, 0, 24)
+tabWrap.BackgroundTransparency = 1
+tabWrap.BorderSizePixel = 0
+tabWrap.ZIndex = 2
+
+local tabMain = Instance.new("TextButton")
+tabMain.Parent = tabWrap
+tabMain.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+tabMain.BorderSizePixel = 0
+tabMain.Position = UDim2.new(0, 0, 0, 0)
+tabMain.Size = UDim2.new(1, 0, 1, 0)
+tabMain.Font = Enum.Font.GothamBold
+tabMain.Text = "Main"
+tabMain.TextColor3 = Color3.fromRGB(255, 255, 255)
+tabMain.TextSize = 12
+tabMain.ZIndex = 3
+local tbc = Instance.new("UICorner"); tbc.CornerRadius = UDim.new(0, 7); tbc.Parent = tabMain
+local tabGradient = Instance.new("UIGradient"); tabGradient.Parent = tabMain; tabGradient.Rotation = 0
+tabGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, BORDER_START),
+	ColorSequenceKeypoint.new(0.5, BORDER_MID),
+	ColorSequenceKeypoint.new(1, BORDER_END)
+})
+
+local toggleHolder = Instance.new("Frame")
+toggleHolder.Parent = ContentFrame
+toggleHolder.BackgroundTransparency = 1
+toggleHolder.Position = UDim2.new(0, 14, 0, 34)
+toggleHolder.Size = UDim2.new(1, -28, 0, 38)
+toggleHolder.ZIndex = 2
+
+local toggleLabel = Instance.new("TextLabel")
+toggleLabel.Parent = toggleHolder
+toggleLabel.BackgroundTransparency = 1
+toggleLabel.Position = UDim2.new(0, 0, 0, 0)
+toggleLabel.Size = UDim2.new(1, -60, 1, 0)
+toggleLabel.Font = Enum.Font.GothamBold
+toggleLabel.Text = "Auto Play"
+toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleLabel.TextSize = 13
+toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+toggleLabel.ZIndex = 3
+local tlGrad = Instance.new("UIGradient"); tlGrad.Parent = toggleLabel; tlGrad.Rotation = 0
+tlGrad.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0.00, BORDER_START),
+	ColorSequenceKeypoint.new(0.50, BORDER_MID),
+	ColorSequenceKeypoint.new(1.00, BORDER_END)
+})
+
+local switchBtn = Instance.new("TextButton")
+switchBtn.Parent = toggleHolder
+switchBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+switchBtn.Position = UDim2.new(1, -46, 0.5, -11)
+switchBtn.Size = UDim2.new(0, 42, 0, 22)
+switchBtn.Text = ""
+switchBtn.BorderSizePixel = 0
+switchBtn.ZIndex = 3
+local swc = Instance.new("UICorner"); swc.CornerRadius = UDim.new(1, 0); swc.Parent = switchBtn
+
+local knob = Instance.new("Frame")
+knob.Parent = switchBtn
+knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+knob.Position = UDim2.new(0, 2, 0.5, -9)
+knob.Size = UDim2.new(0, 18, 0, 18)
+knob.BorderSizePixel = 0
+knob.ZIndex = 4
+local knobC = Instance.new("UICorner"); knobC.CornerRadius = UDim.new(1, 0); knobC.Parent = knob
+
+local logCount = 0
+local addLog
+
+local toggleState = false
+local function refreshToggle(noTween)
+	local bgColor = toggleState and Color3.fromRGB(0, 200, 140) or Color3.fromRGB(45, 45, 60)
+	local knobPos = toggleState and UDim2.new(0, 22, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+	if noTween then
+		switchBtn.BackgroundColor3 = bgColor
+		knob.Position = knobPos
+	else
+		TweenService:Create(switchBtn, TweenInfo.new(0.2), {BackgroundColor3 = bgColor}):Play()
+		TweenService:Create(knob, TweenInfo.new(0.2), {Position = knobPos}):Play()
+	end
+end
+refreshToggle(true)
+
+local function doToggle()
+	toggleState = not toggleState
+	refreshToggle(false)
+	autoClick = toggleState
+	if not toggleState then autoPickup = false end
+end
+
+switchBtn.MouseButton1Click:Connect(doToggle)
+toggleHolder.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		doToggle()
+	end
+end)
+
+local btnWrap = Instance.new("Frame")
+btnWrap.Parent = ContentFrame
+btnWrap.BackgroundTransparency = 1
+btnWrap.BorderSizePixel = 0
+btnWrap.Position = UDim2.new(0, 14, 0, 80)
+btnWrap.Size = UDim2.new(1, -28, 0, 38)
+btnWrap.ZIndex = 2
+
+local leaderBtn = Instance.new("TextButton")
+leaderBtn.Parent = btnWrap
+leaderBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+leaderBtn.BorderSizePixel = 0
+leaderBtn.Position = UDim2.new(0, 0, 0, 0)
+leaderBtn.Size = UDim2.new(1, 0, 1, 0)
+leaderBtn.Font = Enum.Font.GothamBold
+leaderBtn.Text = "Check Leaderboards"
+leaderBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+leaderBtn.TextSize = 13
+leaderBtn.ZIndex = 3
+local lbc = Instance.new("UICorner"); lbc.CornerRadius = UDim.new(0, 9); lbc.Parent = leaderBtn
+local leaderGradient = Instance.new("UIGradient"); leaderGradient.Parent = leaderBtn; leaderGradient.Rotation = 0
+leaderGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, BORDER_START),
+	ColorSequenceKeypoint.new(0.5, BORDER_MID),
+	ColorSequenceKeypoint.new(1, BORDER_END)
+})
+
+leaderBtn.MouseButton1Click:Connect(function()
+	leaderBtn.TextTransparency = 0.4
+	task.delay(0.15, function()
+		if leaderBtn and leaderBtn.Parent then
+			leaderBtn.TextTransparency = 0
+		end
+	end)
+	for _, v in ipairs(workspace:GetDescendants()) do
+		if v.Name == "ClaimPrompt" and v:IsA("ProximityPrompt") then
+			fireproximityprompt(v)
+			break
+		end
+	end
+end)
+
+LogFrame.Parent = ContentFrame
+LogFrame.BackgroundColor3 = Color3.fromRGB(16, 16, 26)
+LogFrame.BorderSizePixel = 0
+LogFrame.Position = UDim2.new(0, 14, 0, 126)
+LogFrame.Size = UDim2.new(1, -28, 1, -138)
+LogFrame.ScrollBarThickness = 4
+LogFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 50, 200)
+LogFrame.ClipsDescendants = true
+LogFrame.ZIndex = 2
+LogFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+local c5 = Instance.new("UICorner"); c5.CornerRadius = UDim.new(0, 7); c5.Parent = LogFrame
+
+local UIPadding = Instance.new("UIPadding")
+UIPadding.Parent = LogFrame
+UIPadding.PaddingLeft = UDim.new(0, 6)
+UIPadding.PaddingTop = UDim.new(0, 4)
+UIPadding.PaddingBottom = UDim.new(0, 4)
+UIPadding.PaddingRight = UDim.new(0, 6)
+
+LogLayout.Parent = LogFrame
+LogLayout.SortOrder = Enum.SortOrder.LayoutOrder
+LogLayout.Padding = UDim.new(0, 2)
+
+addLog = function(msg, color)
+	logCount += 1
+	local lbl = Instance.new("TextLabel")
+	lbl.Parent = LogFrame
+	lbl.BackgroundTransparency = 1
+	lbl.Size = UDim2.new(1, -4, 0, 0)
+	lbl.Font = Enum.Font.Code
+	lbl.Text = "[" .. os.date("%H:%M:%S") .. "] " .. msg
+	lbl.TextColor3 = color or BORDER_MID
+	lbl.TextSize = 11
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.TextWrapped = true
+	lbl.AutomaticSize = Enum.AutomaticSize.Y
+	lbl.LayoutOrder = logCount
+	lbl.ZIndex = 3
+	task.wait()
+	LogFrame.CanvasSize = UDim2.new(0, 0, 0, LogLayout.AbsoluteContentSize.Y + 8)
+	LogFrame.CanvasPosition = Vector2.new(0, math.huge)
+end
+
+addLog("Velocity X | Wonder Chase loaded.", nil)
+
+task.spawn(function()
+	while running do
+		task.wait(0.15)
+		if not autoPickup or not hrp then continue end
+		local p = workspace:FindFirstChild("Pickups")
+		if p then
+			for _, v in ipairs(p:GetChildren()) do
+				if v:IsA("BasePart") then
+					firetouchinterest(hrp, v, 0)
+					firetouchinterest(hrp, v, 1)
+				end
+			end
+		end
+	end
+end)
+
+task.spawn(function()
+	while running do
+		if not autoClick then task.wait(1) continue end
+
+		autoPickup = false
+		tp(START_CFRAME)
+		task.wait(START_DELAY)
+
+		if not autoClick or not running then continue end
+
+		autoPickup = true
+		local LVL = workspace:WaitForChild("Level")
+
+		tpToCheckpoint(LVL.SchoolInterior.Checkpoints, 1, 7)
+		tpToCheckpoint(LVL.WallGarden.Checkpoints, 8, 12)
+		tpToCheckpoint(LVL.Gymnasium.Checkpoints, 13, 21)
+		tpToCheckpoint(LVL.Tower.Checkpoints, 22, 28)
+
+		local currentTime = 0
+		repeat
+			task.wait(0.5)
+			local parsed = tonumber((timeLabel.Text or ""):match("%d+%.?%d*"))
+			currentTime = parsed or 0
+		until currentTime >= TARGET_TIME or not autoClick or not running
+
+		if not autoClick or not running then
+			autoPickup = false
+			continue
+		end
+
+		autoPickup = false
+
+		local portal = workspace.Utility.Teleporters.Portal_to_Wc:FindFirstChild("Collision")
+		if portal and hrp then
+			hrp.CFrame = portal.CFrame
+			firetouchinterest(hrp, portal, 0)
+			task.wait(0.1)
+			firetouchinterest(hrp, portal, 1)
+		end
+
+		local clicked = false
+		local attempts = 0
+		while not clicked and attempts < 40 and running and autoClick do
+			clicked = clickReplay()
+			task.wait(0.5)
+			attempts += 1
+		end
+
+		if clicked then
+			task.wait(POST_REPLAY_DELAY)
+		end
+	end
+end)
