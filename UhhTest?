@@ -162,7 +162,7 @@ MinBtn.BackgroundTransparency = 1
 MinBtn.Position = UDim2.new(1, -34, 0, 5)
 MinBtn.Size = UDim2.new(0, 28, 0, 28)
 MinBtn.Font = Enum.Font.GothamBold
-MinBtn.Text = "^"
+MinBtn.Text = "V"
 MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinBtn.TextSize = 16
 MinBtn.ZIndex = 2
@@ -250,7 +250,7 @@ tabMain.Position = UDim2.new(0, 0, 0, 0)
 tabMain.Size = UDim2.new(1, 0, 1, 0)
 tabMain.Font = Enum.Font.GothamBold
 tabMain.Text = "Main"
-tabMain.TextColor3 = Color3.fromRGB(255, 255, 255)
+tabMain.TextColor3 = Color3.fromRGB(0, 0, 0)
 tabMain.TextSize = 12
 tabMain.ZIndex = 3
 local tbc = Instance.new("UICorner"); tbc.CornerRadius = UDim.new(0, 7); tbc.Parent = tabMain
@@ -352,7 +352,7 @@ leaderBtn.Position = UDim2.new(0, 0, 0, 0)
 leaderBtn.Size = UDim2.new(1, 0, 1, 0)
 leaderBtn.Font = Enum.Font.GothamBold
 leaderBtn.Text = "Check Leaderboards"
-leaderBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+leaderBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
 leaderBtn.TextSize = 13
 leaderBtn.ZIndex = 3
 local lbc = Instance.new("UICorner"); lbc.CornerRadius = UDim.new(0, 9); lbc.Parent = leaderBtn
