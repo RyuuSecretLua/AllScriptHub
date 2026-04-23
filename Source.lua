@@ -8,7 +8,7 @@ if PlaceId ~= 18334179599 and PlaceId ~= 74395953411817 and PlaceId ~= 187990850
 local VeloraCityX = loadstring(game:HttpGet("https://raw.githubusercontent.com/RyuuSecretLua/UiLibriariesLuau.com/refs/heads/main/VeloraCityX-1.lua"))()
 
 local Window = VeloraCityX:CreateWindow({
-    Title = PlaceId == 18334179599 and "Chained" or PlaceId == 74395953411817 and "Dreamfile RP" or "Hide Or Die"
+    Title = PlaceId == 18334179599 and "Chained [2 Player Obby]" or PlaceId == 74395953411817 and "Dreamville RP" or "Hide Or Die"
 })
 
 local MainTab = Window:AddTab({
