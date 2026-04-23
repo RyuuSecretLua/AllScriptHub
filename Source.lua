@@ -52,11 +52,30 @@ if PlaceId == 74395953411817 then
     })
 
     MainTab:AddButton({
-        Name = "Complete Clues",
+        Name = "Auto Collect Clue",
         Callback = function()
-            RF.CollectClue:InvokeServer(workspace.SheepDetectives.Interactive.Clues.Backpack)
-            RF.CollectClue:InvokeServer(workspace.SheepDetectives.Interactive.Clues.ShoopingCart)
-            RF.CollectFinalClue:InvokeServer(workspace.SheepDetectives.Interactive.Clues.FinalClue_Chain)
+            local char = game.Players.LocalPlayer.Character
+            if not char then return end
+
+            local locations = {
+                Vector3.new(-1744.0516357421875, 4.748029708862305, 1198.0550537109375),
+                Vector3.new(-1476.527587890625, 4.489880084991455, 1597.2745361328125),
+                Vector3.new(-1070.0938720703125, 23.248016357421875, 1394.701171875)
+            }
+
+            for _, pos in ipairs(locations) do
+                char:PivotTo(CFrame.new(pos))
+                task.wait(1)
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") and v.Name == "PromptInteract" then
+                        local part = v.Parent
+                        if part:IsA("BasePart") and (part.Position - pos).Magnitude < 50 then
+                            fireproximityprompt(v)
+                        end
+                    end
+                end
+                task.wait(1)
+            end
         end
     })
 
