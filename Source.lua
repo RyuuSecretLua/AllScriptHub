@@ -1,3 +1,152 @@
 if game.PlaceId == 90607665522400 then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/RyuuSecretLua/AllScriptHub/refs/heads/main/UhhTest%3F"))()
 end
+local PlaceId = game.PlaceId
+
+if PlaceId ~= 18334179599 and PlaceId ~= 74395953411817 and PlaceId ~= 18799085098 then return end
+
+local VeloraCityX = loadstring(game:HttpGet("https://raw.githubusercontent.com/RyuuSecretLua/UiLibriariesLuau.com/refs/heads/main/VeloraCityX-1.lua"))()
+
+local Window = VeloraCityX:CreateWindow({
+    Title = PlaceId == 18334179599 and "Chained" or PlaceId == 74395953411817 and "Dreamfile RP" or "Hide Or Die"
+})
+
+local MainTab = Window:AddTab({
+    Name = "Main",
+    Icon = "house"
+})
+
+local CreditsTab = Window:AddTab({
+    Name = "Credits",
+    Icon = "info"
+})
+
+if PlaceId == 18334179599 then
+    local Event = game:GetService("ReplicatedStorage").SheepDetectivesRemotes.ClueFound
+
+    MainTab:AddButton({
+        Name = "Talk Sheep NPC",
+        Callback = function()
+            fireproximityprompt(workspace.SmartCharacters.WhiteSheep.HumanoidRootPart.ProximityPrompt)
+        end
+    })
+
+    MainTab:AddButton({
+        Name = "Complete Clues",
+        Callback = function()
+            for i = 1, 6 do
+                Event:FireServer(i)
+            end
+        end
+    })
+end
+
+if PlaceId == 74395953411817 then
+    local RF = game:GetService("ReplicatedStorage").Packages.Flux.Services.IntegrationService.RF
+
+    MainTab:AddButton({
+        Name = "Get Quest",
+        Callback = function()
+            game:GetService("ReplicatedStorage").Packages.Flux.Services.IntegrationService.RE.ActivateQuest:FireServer()
+        end
+    })
+
+    MainTab:AddButton({
+        Name = "Complete Clues",
+        Callback = function()
+            RF.CollectClue:InvokeServer(workspace.SheepDetectives.Interactive.Clues.Backpack)
+            RF.CollectClue:InvokeServer(workspace.SheepDetectives.Interactive.Clues.ShoopingCart)
+            RF.CollectFinalClue:InvokeServer(workspace.SheepDetectives.Interactive.Clues.FinalClue_Chain)
+        end
+    })
+
+    MainTab:AddButton({
+        Name = "Claim UGC",
+        Callback = function()
+            game:GetService("ReplicatedStorage").Packages.Flux.Services.UgcService.RF.RequestClaim:InvokeServer()
+        end
+    })
+end
+
+if PlaceId == 18799085098 then
+    local espLoop
+
+    MainTab:AddButton({
+        Name = "Get Quest",
+        Callback = function()
+            local Event = game:GetService("ReplicatedStorage").SheepDetectives.Assets.Remotes["SC:ChattedWithCharacterEvent"]
+            Event:FireServer(game:GetService("Players").LocalPlayer, "Sebastian")
+        end
+    })
+
+    MainTab:AddToggle({
+        Name = "ESP All Player",
+        Default = false,
+        Callback = function(state)
+            if state then
+                espLoop = game:GetService("RunService").Heartbeat:Connect(function()
+                    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+                        if player ~= game:GetService("Players").LocalPlayer and player.Character then
+                            local char = player.Character
+                            if not char:FindFirstChild("_RyuuESP") then
+                                local highlight = Instance.new("Highlight")
+                                highlight.Name = "_RyuuESP"
+                                highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                                highlight.FillTransparency = 0.5
+                                highlight.OutlineTransparency = 0
+                                highlight.Parent = char
+
+                                task.spawn(function()
+                                    local t = 0
+                                    while highlight and highlight.Parent do
+                                        t = t + 0.05
+                                        local r = math.abs(math.sin(t))
+                                        highlight.FillColor = Color3.fromRGB(0, math.floor(r * 100), 255)
+                                        highlight.OutlineColor = Color3.fromRGB(math.floor(r * 120), 0, 255)
+                                        task.wait(0.05)
+                                    end
+                                end)
+                            end
+                        end
+                    end
+                end)
+            else
+                if espLoop then
+                    espLoop:Disconnect()
+                    espLoop = nil
+                end
+                for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+                    if player.Character then
+                        local h = player.Character:FindFirstChild("_RyuuESP")
+                        if h then h:Destroy() end
+                    end
+                end
+            end
+        end
+    })
+end
+
+CreditsTab:AddButton({
+    Name = "Ryuu Yt",
+    Callback = function()
+        setclipboard("https://www.youtube.com/@justcallmeryuu")
+    end
+})
+
+CreditsTab:AddSection({
+    Name = "Supporters"
+})
+
+CreditsTab:AddButton({
+    Name = "Fier Yt",
+    Callback = function()
+        setclipboard("https://youtube.com/@itsfier?si=VqT_o3OfkRIPV56P")
+    end
+})
+
+CreditsTab:AddButton({
+    Name = "Fier Team",
+    Callback = function()
+        setclipboard("https://discord.gg/fierteam")
+    end
+})
