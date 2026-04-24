@@ -169,3 +169,174 @@ CreditsTab:AddButton({
         setclipboard("https://discord.gg/fierteam")
     end
 })
+if game.PlaceId == 11164179537 then
+local VeloraCityX = loadstring(game:HttpGet("https://raw.githubusercontent.com/RyuuSecretLua/UiLibriariesLuau.com/refs/heads/main/VeloraCityX-1.lua"))()
+
+local Window = VeloraCityX:CreateWindow({
+    Title = "[BETA] Blue Building Detectives (DPA)"
+})
+
+local MainTab = Window:AddTab({
+    Name = "Main",
+    Icon = "house"
+})
+
+local CreditsTab = Window:AddTab({
+    Name = "Credits",
+    Icon = "info"
+})
+
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+pcall(function()
+    ReplicatedStorage.Packages:ClearAllChildren()
+end)
+
+pcall(function()
+    if LocalPlayer.PlayerGui:FindFirstChild("PopupGui") then
+        LocalPlayer.PlayerGui.PopupGui:Destroy()
+    end
+end)
+
+local mt = getrawmetatable(game)
+local old = mt.__namecall
+setreadonly(mt, false)
+mt.__namecall = newcclosure(function(self, ...)
+    local args = {...}
+    if (tostring(self) == "AddPopupActive" or tostring(self) == "RemovePopupActive") and args[1] == "RewardGainPopup" then
+        return nil
+    end
+    return old(self, ...)
+end)
+setreadonly(mt, true)
+
+task.spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            local gui = LocalPlayer:FindFirstChild("PlayerGui")
+            if gui then
+                for _, v in pairs(gui:GetDescendants()) do
+                    if v.Name == "RewardGainPopup" or v.Name == "PopupFrame" then v:Destroy() end
+                end
+            end
+        end)
+    end
+end)
+
+local Toggles = {
+    InfCoins = false,
+    AutoClaimUGC = false,
+    AntiAFK = false,
+}
+
+local function getHRP()
+    local char = LocalPlayer.Character
+    return char and char:FindFirstChild("HumanoidRootPart")
+end
+
+RunService.Heartbeat:Connect(function()
+    if not Toggles.InfCoins then return end
+    local hrp = getHRP()
+    if not hrp then return end
+    pcall(function()
+        local s1 = workspace.Obby["Porao da Amaranta - Gigante"].Teleportes.Checkpoints.CheckpointStart
+        local e1 = workspace.Obby["Porao da Amaranta - Gigante"].Teleportes.TeleportPoint_end
+        firetouchinterest(hrp, s1, 0)
+        firetouchinterest(hrp, s1, 1)
+        firetouchinterest(hrp, e1, 0)
+        firetouchinterest(hrp, e1, 1)
+    end)
+    pcall(function()
+        local s2 = workspace.Obby["Clubinho - Gigante"].Teleports.Checkpoints.CheckpointStart
+        local e2 = workspace.Obby["Clubinho - Gigante"].Teleports.TeleportPoint_end
+        firetouchinterest(hrp, s2, 0)
+        firetouchinterest(hrp, s2, 1)
+        firetouchinterest(hrp, e2, 0)
+        firetouchinterest(hrp, e2, 1)
+    end)
+    pcall(function()
+        local s3 = workspace.Obby["Armazem do Theobaldo - Gigante"].Level.Teleports.Checkpoints.CheckpointStart
+        local e3 = workspace.Obby["Armazem do Theobaldo - Gigante"].Level.Teleports.TeleportPoint_end
+        firetouchinterest(hrp, s3, 0)
+        firetouchinterest(hrp, s3, 1)
+        firetouchinterest(hrp, e3, 0)
+        firetouchinterest(hrp, e3, 1)
+    end)
+end)
+
+local function AutoClaimUGCLoop()
+    while Toggles.AutoClaimUGC do
+        pcall(function()
+            local touch = workspace.Building.Npc.NpcSpawnBerenice.Elements.PlatformAction.Base.TouchInterest
+            firetouchinterest(touch, 0)
+            firetouchinterest(touch, 1)
+        end)
+        task.wait(0.1)
+    end
+end
+
+task.spawn(function()
+    while true do
+        if Toggles.AntiAFK then
+            pcall(function()
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton2(Vector2.new())
+            end)
+        end
+        task.wait(60)
+    end
+end)
+
+MainTab:AddToggle({
+    Name = "Infinite Coin",
+    Default = false,
+    Callback = function(state)
+        Toggles.InfCoins = state
+    end
+})
+
+MainTab:AddToggle({
+    Name = "Auto Claim UGC",
+    Default = false,
+    Callback = function(state)
+        Toggles.AutoClaimUGC = state
+        if state then task.spawn(AutoClaimUGCLoop) end
+    end
+})
+
+MainTab:AddToggle({
+    Name = "Anti AFK",
+    Default = false,
+    Callback = function(state)
+        Toggles.AntiAFK = state
+    end
+})
+
+CreditsTab:AddButton({
+    Name = "Ryuu Yt",
+    Callback = function()
+        setclipboard("https://www.youtube.com/@lostryuu")
+    end
+})
+
+CreditsTab:AddSection({
+    Name = "Supporters"
+})
+
+CreditsTab:AddButton({
+    Name = "Fier Yt",
+    Callback = function()
+        setclipboard("https://youtube.com/@itsfier?si=VqT_o3OfkRIPV56P")
+    end
+})
+
+CreditsTab:AddButton({
+    Name = "Fier Team",
+    Callback = function()
+        setclipboard("https://discord.gg/fierteam")
+    end
+})
