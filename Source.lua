@@ -272,14 +272,11 @@ end)
 local function AutoClaimUGCLoop()
     while Toggles.AutoClaimUGC do
         pcall(function()
-            local touch = workspace.Building.Npc.NpcSpawnBerenice.Elements.PlatformAction.Base.TouchInterest
-            firetouchinterest(touch, 0)
-            firetouchinterest(touch, 1)
+            game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("_Index"):WaitForChild("sleitnick_knit@1.4.2"):WaitForChild("knit"):WaitForChild("Services"):WaitForChild("RobuxStoreService"):WaitForChild("RF"):WaitForChild("TryOwnAssetByNpc"):InvokeServer("npc_berenice")
         end)
         task.wait(0.1)
     end
-end
-
+    end
 task.spawn(function()
     while true do
         if Toggles.AntiAFK then
@@ -341,3 +338,5 @@ CreditsTab:AddButton({
         setclipboard("https://discord.gg/fierteam")
     end
 })
+
+end
